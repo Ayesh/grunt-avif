@@ -2,7 +2,7 @@
   "name": "grunt-avif",
   "version": "0.0.1",
   "description": "An AVIF image encoder for Grunt using go-avif.",
-  "main": "index.js",
+  "main": "grunt-avif.js",
   "devDependencies": {
     "grunt": ">=0.4.2"
   },
