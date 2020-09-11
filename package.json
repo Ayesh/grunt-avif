@@ -1,0 +1,33 @@
+{
+  "name": "grunt-avif",
+  "version": "0.0.1",
+  "description": "An AVIF image encoder for Grunt using go-avif.",
+  "main": "index.js",
+  "devDependencies": {
+    "grunt": ">=0.4.2"
+  },
+  "peerDependencies": {
+    "grunt": ">=0.4.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ayesh/grunt-avif.git"
+  },
+  "keywords": [
+    "gruntplugin",
+    "avif",
+    "image-optimization",
+    "jpg",
+    "png",
+    "jpeg"
+  ],
+  "author": "Ayesh Karunaratne <ayesh@ayesh.me>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ayesh/grunt-avif/issues"
+  },
+  "homepage": "https://github.com/Ayesh/grunt-avif#readme"
+}
