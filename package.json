@@ -1,5 +1,5 @@
 {
-  "name": "@ayesh/grunt-avif",
+  "name": "grunt-avif",
   "version": "0.0.4",
   "description": "An AVIF image encoder for Grunt using go-avif.",
   "devDependencies": {
