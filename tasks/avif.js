@@ -14,21 +14,22 @@ module.exports = function(grunt) {
     var path = require('path');
     var async = require('async');
     var fs = require('fs');
-    grunt.registerMultiTask('avif', "Encode images to AVIF, potentially making them smaller in file size.", function() {
+    grunt.registerMultiTask('cavif', "Encode images to AVIF, potentially making them smaller in file size.", function() {
         /**
          * Retrieves defined options.
          */
+        grunt.log.writeln('starting.');
         var options = this.options();
         grunt.verbose.writeflags(options, 'Options');
 
         var done = this.async();
-
         var bin = 'avif';
         if (options.binpath) {
             bin = options.binpath;
         }
         var source_total = 0;
         var dest_total = 0;
+        var source_total_webp = 0;
         var oversize_total = 0;
 
         // Iterate over all src-dest file pairs.
@@ -40,27 +41,15 @@ module.exports = function(grunt) {
             grunt.file.mkdir(path.dirname(f.dest));
             var args = [];
 
-            if (options.quality) {
-                if (options.quality <= 63 && options.quality >= 0) {
-                    args.push('--quality');
-                    args.push(options.quality);
-                }
-                else {
-                    grunt.fail.warn('Quality must be between 0 and 63');
-                }
-            }
+            args.push('--min');
+            args.push('0');
 
-            if (options.speed) {
-                if (options.speed <= 8 && options.speed >= 0) {
-                    args.push('--speed');
-                    args.push(options.speed);
-                }
-                else {
-                    grunt.fail.warn('Speed value must be between 0 and 8');
-                }
-            }
+            args.push('--max');
+            args.push('5');
 
-            args.push('-e');
+            args.push('-s');
+            args.push('3');
+
             args.push(f.src);
 
             args.push('-o');
@@ -69,7 +58,7 @@ module.exports = function(grunt) {
             /**
              * Outputs the file that is being analysed.
              */
-            grunt.log.subhead('Compressing: ' + f.dest);
+            grunt.verbose.subhead('Compressing: ' + f.dest);
             var child = grunt.util.spawn({
                 cmd: bin,
                 args: args
@@ -82,6 +71,7 @@ module.exports = function(grunt) {
                     var source = fs.statSync(f.src[0])['size'];
                     var dest = fs.statSync(f.dest)['size'];
                     var diff = ((source - dest) / source) * 100;
+                    var deletedAvif = false;
                     diff = Number((diff).toFixed(2));
                     source_total += source;
                     if (diff < 0) {
@@ -90,16 +80,43 @@ module.exports = function(grunt) {
                         diff = diff * -1;
                         if (options.deleteLarger) {
                             grunt.file.delete(f.dest);
-                            grunt.log.writeln('Deleted: '['yellow'] + diff + '% larger than its source.');
+                            grunt.verbose.writeln('Deleted: '['yellow'] + diff + '% larger than its source.');
+                            var deletedAvif = true;
                         }
                         else {
                             dest_total += dest;
-                            grunt.log.writeln('Warning: '['yellow'] + diff + '% larger than its source. Left undeleted.');
+                            grunt.verbose.writeln('Warning: '['yellow'] + diff + '% larger than its source. Left undeleted.');
                         }
                     }
                     else {
                         dest_total += dest;
-                        grunt.log.oklns('Done: '['green'] + diff + '% smaller | ' + diff + '%: ' + source + ' -> ' + dest);
+                        grunt.verbose.oklns('Done: '['green'] + diff + '% smaller | ' + diff + '%: ' + source + ' -> ' + dest);
+                    }
+
+                    if (options.deleteLargerWebp && !deletedAvif) {
+
+                        var source = fs.statSync(f.dest.replace(/\.avif$/, '.webp'))['size'];
+                        var dest = fs.statSync(f.dest)['size'];
+                        var diff = ((source - dest) / source) * 100;
+                        diff = Number((diff).toFixed(2));
+                        source_total_webp += source;
+                        if (diff < 0) {
+                            oversize_total++;
+                            source_total += source;
+                            diff = diff * -1;
+                            if (options.deleteLarger) {
+                                grunt.file.delete(f.dest);
+                                grunt.verbose.writeln('Deleted: '['yellow'] + diff + '% larger than its webp counterpart.');
+                            }
+                            else {
+                                dest_total += dest;
+                                grunt.verbose.writeln('Warning: '['yellow'] + diff + '% larger than its webp counterpart. Left undeleted.');
+                            }
+                        }
+                        else {
+                            dest_total += dest;
+                            grunt.verbose.oklns('Done: Webp comparison: '['green'] + diff + '% smaller | ' + diff + '%: ' + source + ' -> ' + dest);
+                        }
                     }
                 }
 
